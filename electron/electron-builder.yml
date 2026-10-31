@@ -17,12 +17,3 @@ files:
 win:
   target:
     - target: dir
-
-nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
-  shortcutName: DEEP E-BIKE POS
-  installerLanguages:
-    - en_US

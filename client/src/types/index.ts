@@ -106,6 +106,7 @@ export interface Sale {
   customer?: Customer;
   customerName?: string;
   customerPhone?: string;
+  customerAddress?: string;
   saleDate: string;
   subtotal: number;
   taxAmount: number;

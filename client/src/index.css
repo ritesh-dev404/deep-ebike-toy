@@ -27,20 +27,54 @@
   @apply bg-slate-400 dark:bg-slate-600;
 }
 
-/* Thermal printer print styles */
+/* Print styles for both A4 Tax Invoice and 80mm Thermal Receipt */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   body * {
     visibility: hidden;
   }
-  #printable-receipt, #printable-receipt * {
+
+  #printable-a4-invoice,
+  #printable-a4-invoice * {
     visibility: visible;
   }
+
+  #printable-a4-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+
   #printable-receipt {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }

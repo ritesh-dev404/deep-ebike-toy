@@ -102,6 +102,7 @@ model Product {
   minStockLevel     Int                   @default(3)
   imageUrl          String?
   description       String?
+  hsnCode           String?               @default("8711")
   isSerialTracked   Boolean               @default(false) // e.g. For e-bikes/scooters chassis
   status            String                @default("ACTIVE") // ACTIVE, INACTIVE, OUT_OF_STOCK
   createdAt         DateTime              @default(now())
@@ -263,6 +264,7 @@ model SaleItem {
   productId         String
   product           Product  @relation(fields: [productId], references: [id])
   productName       String   // Preserved historical name
+  hsnCode           String?  @default("8711")
   quantity          Int
   unitPrice         Float    // Selling price at time of sale
   costPrice         Float    // Historical purchase price at time of sale for accurate gross profit!

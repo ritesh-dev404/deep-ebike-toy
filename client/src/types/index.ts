@@ -44,6 +44,7 @@ export interface Product {
   minStockLevel: number;
   imageUrl?: string;
   description?: string;
+  hsnCode?: string;
   isSerialTracked: boolean;
   status: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
   serialNumbers?: SerialNumber[];
@@ -93,6 +94,7 @@ export interface SaleItem {
   gstRate: number;
   taxAmount: number;
   totalPrice: number;
+  hsnCode?: string;
   serialNumbersJson?: string;
   product?: Product;
 }
@@ -130,6 +132,7 @@ export interface PurchaseItem {
   gstRate: number;
   taxAmount: number;
   totalPrice: number;
+  hsnCode?: string;
   serialNumbersJson?: string;
 }
 

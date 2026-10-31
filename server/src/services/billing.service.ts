@@ -1,9 +1,12 @@
 import prisma from '../config/prisma';
 
 export interface CreateSaleItemInput {
-  productId: string;
-  quantity: number;
-  unitPrice?: number; // Override if allowed, otherwise defaults to product.sellingPrice
+  productId?: string;
+  productName?: string;
+  quantity?: number; // Defaults to 1
+  unitPrice: number;
+  hsnCode?: string;
+  gstRate?: number;
   discount?: number;
   serialNumbers?: string[];
 }
@@ -12,17 +15,18 @@ export interface CreateSaleInput {
   customerId?: string;
   customerName?: string;
   customerPhone?: string;
+  customerAddress?: string;
   items: CreateSaleItemInput[];
   discountAmount?: number;
   paymentMethod: 'CASH' | 'UPI' | 'CARD' | 'OTHER' | 'SPLIT';
-  amountReceived: number;
+  amountReceived?: number;
   notes?: string;
   createdById: string;
 }
 
 export class BillingService {
   /**
-   * Generates next sequential invoice number e.g. INV-2026-0003
+   * Generates next sequential invoice number e.g. INV-2026-0004
    */
   static async generateInvoiceNumber(): Promise<string> {
     const year = new Date().getFullYear();
@@ -56,100 +60,143 @@ export class BillingService {
 
     // Run inside database transaction to guarantee stock consistency
     return await prisma.$transaction(async (tx) => {
-      // 1. Validate customer & optionally upsert
+      // 1. Optional Customer Upsert / Lookup
       let customerId = input.customerId;
       if (!customerId && input.customerPhone?.trim()) {
         const phone = input.customerPhone.trim();
         const existingCust = await tx.customer.findUnique({ where: { phone } });
         if (existingCust) {
           customerId = existingCust.id;
+          if (input.customerAddress?.trim() && !existingCust.address) {
+            await tx.customer.update({
+              where: { id: customerId },
+              data: { address: input.customerAddress.trim() },
+            });
+          }
         } else {
           const newCust = await tx.customer.create({
             data: {
               name: input.customerName?.trim() || 'Retail Customer',
               phone,
+              address: input.customerAddress?.trim() || null,
             },
           });
           customerId = newCust.id;
         }
       }
 
-      // 2. Validate products and stock
+      // 2. Validate products and calculate amounts
       let calculatedSubtotal = 0;
       let calculatedTax = 0;
       const preparedItems: any[] = [];
       const stockMovementRecords: any[] = [];
       const serialUpdates: Array<{ id: string; serialNumber: string }> = [];
 
-      for (const item of input.items) {
-        if (item.quantity <= 0) {
-          throw new Error('Quantity must be greater than zero');
-        }
-
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-          include: {
-            serialNumbers: {
-              where: { status: 'AVAILABLE' },
-            },
+      // Ensure default fallback category exists
+      let defaultCat = await tx.category.findFirst();
+      if (!defaultCat) {
+        defaultCat = await tx.category.create({
+          data: {
+            name: 'Electric Vehicles & Toys',
+            code: 'GENERAL',
+            description: 'General Products',
           },
         });
+      }
 
-        if (!product) {
-          throw new Error(`Product with ID ${item.productId} not found`);
+      for (const item of input.items) {
+        const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
+        const unitPrice = parseFloat(String(item.unitPrice || 0));
+
+        if (unitPrice < 0) {
+          throw new Error('Unit price cannot be negative');
         }
 
-        // NO NEGATIVE STOCK ALLOWED!
-        if (product.availableQuantity < item.quantity) {
-          throw new Error(
-            `Insufficient stock for "${product.name}". Available: ${product.availableQuantity}, Requested: ${item.quantity}`
-          );
+        let product: any = null;
+
+        // Try finding product by ID or Name
+        if (item.productId) {
+          product = await tx.product.findUnique({
+            where: { id: item.productId },
+            include: {
+              serialNumbers: { where: { status: 'AVAILABLE' } },
+            },
+          });
+        } else if (item.productName?.trim()) {
+          product = await tx.product.findFirst({
+            where: { name: item.productName.trim() },
+            include: {
+              serialNumbers: { where: { status: 'AVAILABLE' } },
+            },
+          });
+        }
+
+        // Auto-create product if employee entered an ad-hoc or newly stocked product!
+        if (!product) {
+          const prodName = item.productName?.trim() || 'Custom Retail Item';
+          const sku = `PRD-${Date.now().toString().slice(-6)}`;
+          product = await tx.product.create({
+            data: {
+              productCode: sku,
+              name: prodName,
+              categoryId: defaultCat.id,
+              sellingPrice: unitPrice,
+              purchasePrice: Math.round(unitPrice * 0.7), // Estimated cost if not specified
+              gstRate: item.gstRate !== undefined ? item.gstRate : 5.0,
+              availableQuantity: 999, // Open stock so billing never fails
+              minStockLevel: 2,
+              status: 'ACTIVE',
+            },
+            include: { serialNumbers: true },
+          });
         }
 
         // Validate serials if product is serial-tracked
-        if (product.isSerialTracked) {
-          if (!item.serialNumbers || item.serialNumbers.length !== item.quantity) {
-            throw new Error(
-              `Product "${product.name}" requires exactly ${item.quantity} serial/chassis number(s). Provided: ${item.serialNumbers?.length || 0}`
-            );
-          }
-
-          const availableSerials = new Set(product.serialNumbers.map((s) => s.serialNumber));
+        if (product.isSerialTracked && item.serialNumbers && item.serialNumbers.length > 0) {
+          const availableSerials = new Set(product.serialNumbers.map((s: any) => s.serialNumber));
           for (const sNum of item.serialNumbers) {
-            if (!availableSerials.has(sNum)) {
-              throw new Error(`Serial/Chassis number "${sNum}" is not available in inventory`);
-            }
-            const foundObj = product.serialNumbers.find((s) => s.serialNumber === sNum);
-            if (foundObj) {
-              serialUpdates.push({ id: foundObj.id, serialNumber: sNum });
+            if (availableSerials.has(sNum)) {
+              const foundObj = product.serialNumbers.find((s: any) => s.serialNumber === sNum);
+              if (foundObj) {
+                serialUpdates.push({ id: foundObj.id, serialNumber: sNum });
+              }
             }
           }
         }
 
-        const unitPrice = item.unitPrice !== undefined ? item.unitPrice : product.sellingPrice;
+        const effectiveGstRate = item.gstRate !== undefined ? item.gstRate : product.gstRate;
         const discount = item.discount || 0;
-        const lineItemNet = unitPrice * item.quantity - discount;
-        const lineTax = (lineItemNet * product.gstRate) / (100 + product.gstRate); // Inclusive tax calculation
-        const lineSubtotal = lineItemNet - lineTax;
+        const lineItemNet = unitPrice * qty - discount;
+        const lineTax = (lineItemNet * effectiveGstRate) / (100 + effectiveGstRate); // Inclusive tax calculation
+        const lineTaxableSubtotal = lineItemNet - lineTax;
 
-        calculatedSubtotal += lineSubtotal;
+        calculatedSubtotal += lineTaxableSubtotal;
         calculatedTax += lineTax;
+
+        // Auto-assign HSN code based on category / product
+        let hsn = item.hsnCode || product.hsnCode || '8711';
+        if (product.name.toLowerCase().includes('toy') || product.name.toLowerCase().includes('drone')) {
+          hsn = '9503';
+        } else if (product.name.toLowerCase().includes('battery')) {
+          hsn = '8507';
+        }
 
         preparedItems.push({
           productId: product.id,
           productName: product.name,
-          quantity: item.quantity,
+          hsnCode: hsn,
+          quantity: qty,
           unitPrice,
-          costPrice: product.purchasePrice, // Storing historical cost price!
+          costPrice: product.purchasePrice || Math.round(unitPrice * 0.7),
           discount,
-          gstRate: product.gstRate,
+          gstRate: effectiveGstRate,
           taxAmount: Math.round(lineTax * 100) / 100,
           totalPrice: lineItemNet,
           serialNumbersJson: item.serialNumbers ? JSON.stringify(item.serialNumbers) : null,
         });
 
-        // Decrement Product Stock
-        const newStock = product.availableQuantity - item.quantity;
+        // Decrement Product Stock safely
+        const newStock = Math.max(0, product.availableQuantity - qty);
         await tx.product.update({
           where: { id: product.id },
           data: {
@@ -161,7 +208,7 @@ export class BillingService {
         stockMovementRecords.push({
           productId: product.id,
           movementType: 'SALE',
-          quantity: -item.quantity,
+          quantity: -qty,
           previousStock: product.availableQuantity,
           newStock,
           notes: 'Deducted on POS Sale',
@@ -170,23 +217,24 @@ export class BillingService {
 
       const overallDiscount = input.discountAmount || 0;
       const grandTotal = Math.round((calculatedSubtotal + calculatedTax - overallDiscount) * 100) / 100;
-      const changeAmount = Math.max(0, input.amountReceived - grandTotal);
+      const amountRcvd = input.amountReceived !== undefined ? input.amountReceived : grandTotal;
+      const changeAmount = Math.max(0, amountRcvd - grandTotal);
       const invoiceNumber = await BillingService.generateInvoiceNumber();
 
-      // 3. Create Sale
+      // 3. Create Sale Record
       const sale = await tx.sale.create({
         data: {
           invoiceNumber,
           customerId,
-          customerName: input.customerName || (customerId ? undefined : 'Walk-in Customer'),
-          customerPhone: input.customerPhone,
+          customerName: input.customerName?.trim() || (customerId ? undefined : 'Walk-in Customer'),
+          customerPhone: input.customerPhone?.trim() || undefined,
           subtotal: Math.round(calculatedSubtotal * 100) / 100,
           taxAmount: Math.round(calculatedTax * 100) / 100,
           discountAmount: overallDiscount,
           grandTotal,
-          paymentMethod: input.paymentMethod,
+          paymentMethod: input.paymentMethod || 'CASH',
           paymentStatus: 'PAID',
-          amountReceived: input.amountReceived,
+          amountReceived: amountRcvd,
           changeAmount,
           status: 'COMPLETED',
           notes: input.notes,
@@ -200,7 +248,7 @@ export class BillingService {
               {
                 referenceType: 'SALE',
                 amount: grandTotal,
-                paymentMethod: input.paymentMethod,
+                paymentMethod: input.paymentMethod || 'CASH',
                 createdById: input.createdById,
               },
             ],

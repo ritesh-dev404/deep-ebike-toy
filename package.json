@@ -10,7 +10,8 @@
     "build": "npm run build:server && npm run build:client",
     "db:push": "npm run prisma:push --prefix server",
     "db:seed": "npm run prisma:seed --prefix server",
-    "electron:dev": "electron electron/dist/main.js"
+    "electron:dev": "electron electron/dist/main.js",
+    "electron:pack": "npm run build && npm run build:electron --prefix electron && npm run pack --prefix electron"
   },
   "keywords": [
     "pos",

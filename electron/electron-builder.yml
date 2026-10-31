@@ -16,13 +16,7 @@ files:
 
 win:
   target:
-    - target: nsis
-      arch:
-        - x64
-    - target: portable
-      arch:
-        - x64
-  artifactName: ${productName}-Setup-${version}.${ext}
+    - target: dir
 
 nsis:
   oneClick: false

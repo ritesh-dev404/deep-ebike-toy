@@ -62,451 +62,440 @@ export const A4Invoice: React.FC<A4InvoiceProps> = ({ sale }) => {
   return (
     <div
       id="printable-a4-invoice"
-      className="bg-white text-slate-900 font-sans mx-auto shadow-2xl border border-slate-300 print:shadow-none print:border-none print:m-0 w-full max-w-[210mm] text-[11px] leading-tight select-none"
+      className="bg-white text-slate-900 font-sans mx-auto shadow-2xl border border-slate-300 print:shadow-none print:border-none print:m-0 w-full max-w-[210mm] text-[10px] leading-tight select-none flex flex-col justify-between"
       style={{
         boxSizing: 'border-box',
         WebkitPrintColorAdjust: 'exact',
         printColorAdjust: 'exact',
+        minHeight: '296mm',
       }}
     >
-      {/* 1. TOP HEADER BANNER (Exact Reference Banner) */}
-      <div className="w-full relative">
-        <img
-          src={TOP_BANNER_IMG}
-          alt="DEEP E-BIKE & TOY Header"
-          className="w-full block object-cover"
-        />
-        {/* Category Sub-strip */}
-        <div className="w-full bg-[#082C50] text-[#E5A823] font-black text-[9.5px] tracking-wider uppercase py-1 text-center flex justify-center items-center gap-4 border-t border-[#EDC554]">
-          <span>ELECTRIC VEHICLES</span>
-          <span className="text-white/40">|</span>
-          <span>TOYS & GIFTS</span>
-          <span className="text-white/40">|</span>
-          <span>SPARE PARTS</span>
-          <span className="text-white/40">|</span>
-          <span>ACCESSORIES</span>
-        </div>
-      </div>
-
-      <div className="px-5 pt-2 pb-4 space-y-2.5">
-        {/* 2. HERO VISUAL SECTION: SCOOTERS | TAX INVOICE | TOYS */}
-        <div className="grid grid-cols-12 items-center gap-1">
-          {/* Left: Electric Scooters */}
-          <div className="col-span-4 flex justify-start items-center">
-            <img
-              src={SCOOTERS_IMG}
-              alt="Electric Scooters"
-              className="h-24 object-contain"
-            />
-          </div>
-
-          {/* Center: Tax Invoice Ribbon */}
-          <div className="col-span-4 text-center space-y-1">
-            <div className="relative inline-flex items-center justify-center">
-              {/* Angled Golden Accents on Left */}
-              <div className="flex gap-1 mr-2 text-[#E5A823] font-black text-base select-none">
-                <span>/</span>
-                <span>/</span>
-              </div>
-
-              {/* Navy Banner */}
-              <div className="bg-[#082C50] text-white font-black text-sm px-6 py-1.5 rounded-sm tracking-widest uppercase shadow-md">
-                TAX INVOICE
-              </div>
-
-              {/* Angled Golden Accents on Right */}
-              <div className="flex gap-1 ml-2 text-[#E5A823] font-black text-base select-none">
-                <span>/</span>
-                <span>/</span>
-              </div>
-            </div>
-
-            <p className="text-[#082C50] font-serif italic text-xs font-bold tracking-wide">
-              Sales Invoice
-            </p>
-          </div>
-
-          {/* Right: Toys */}
-          <div className="col-span-4 flex justify-end items-center">
-            <img
-              src={TOYS_IMG}
-              alt="Kids Toys"
-              className="h-20 object-contain"
-            />
+      <div>
+        {/* 1. TOP HEADER BANNER */}
+        <div className="w-full relative">
+          <img
+            src={TOP_BANNER_IMG}
+            alt="DEEP E-BIKE & TOY Header"
+            className="w-full block object-cover"
+          />
+          {/* Category Sub-strip */}
+          <div className="w-full bg-[#082C50] text-[#E5A823] font-black text-[9px] tracking-wider uppercase py-0.5 text-center flex justify-center items-center gap-3 border-t border-[#EDC554]">
+            <span>ELECTRIC VEHICLES</span>
+            <span className="text-white/40">|</span>
+            <span>TOYS & GIFTS</span>
+            <span className="text-white/40">|</span>
+            <span>SPARE PARTS</span>
+            <span className="text-white/40">|</span>
+            <span>ACCESSORIES</span>
           </div>
         </div>
 
-        {/* 3. INVOICE META INFORMATION BOX */}
-        <div className="border border-slate-300 rounded-xl p-2.5 bg-white shadow-sm">
-          <div className="grid grid-cols-2 divide-x divide-slate-300">
-            {/* Left Meta */}
-            <div className="pr-4 space-y-1">
-              <div className="flex">
-                <span className="w-24 text-slate-700 font-semibold">Invoice No.</span>
-                <span className="text-slate-500 mr-2">:</span>
-                <span className="font-bold text-[#082C50] font-mono">
-                  {sale.invoiceNumber || 'DBT-2026-000145'}
-                </span>
-              </div>
-              <div className="flex">
-                <span className="w-24 text-slate-700 font-semibold">Invoice Date</span>
-                <span className="text-slate-500 mr-2">:</span>
-                <span className="font-bold text-slate-900">{formattedDate}</span>
-              </div>
-              <div className="flex">
-                <span className="w-24 text-slate-700 font-semibold">Invoice Time</span>
-                <span className="text-slate-500 mr-2">:</span>
-                <span className="font-bold text-slate-900">{formattedTime}</span>
-              </div>
+        <div className="px-4 pt-1.5 pb-2 space-y-2">
+          {/* 2. HERO VISUAL SECTION: SCOOTERS | TAX INVOICE | TOYS */}
+          <div className="grid grid-cols-12 items-center gap-1">
+            {/* Left: Electric Scooters */}
+            <div className="col-span-4 flex justify-start items-center">
+              <img
+                src={SCOOTERS_IMG}
+                alt="Electric Scooters"
+                className="h-20 object-contain"
+              />
             </div>
 
-            {/* Right Meta */}
-            <div className="pl-4 space-y-1">
-              <div className="flex items-center">
-                <span className="w-28 text-slate-700 font-semibold">Payment Status</span>
-                <span className="text-slate-500 mr-2">:</span>
-                <span className="bg-[#16A34A] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                  {sale.paymentStatus === 'PENDING' ? 'Pending' : 'Paid'}
-                </span>
+            {/* Center: Tax Invoice Ribbon */}
+            <div className="col-span-4 text-center space-y-0.5">
+              <div className="relative inline-flex items-center justify-center">
+                {/* Angled Golden Accents on Left */}
+                <div className="flex gap-1 mr-1.5 text-[#E5A823] font-black text-sm select-none">
+                  <span>/</span>
+                  <span>/</span>
+                </div>
+
+                {/* Navy Banner */}
+                <div className="bg-[#082C50] text-white font-black text-xs px-5 py-1 rounded-sm tracking-widest uppercase shadow-sm">
+                  TAX INVOICE
+                </div>
+
+                {/* Angled Golden Accents on Right */}
+                <div className="flex gap-1 ml-1.5 text-[#E5A823] font-black text-sm select-none">
+                  <span>/</span>
+                  <span>/</span>
+                </div>
               </div>
-              <div className="flex">
-                <span className="w-28 text-slate-700 font-semibold">Payment Mode</span>
-                <span className="text-slate-500 mr-2">:</span>
-                <span className="font-bold text-slate-900">{sale.paymentMethod || 'UPI'}</span>
+
+              <p className="text-[#082C50] font-serif italic text-[11px] font-bold tracking-wide">
+                Sales Invoice
+              </p>
+            </div>
+
+            {/* Right: Toys */}
+            <div className="col-span-4 flex justify-end items-center">
+              <img
+                src={TOYS_IMG}
+                alt="Kids Toys"
+                className="h-18 object-contain"
+              />
+            </div>
+          </div>
+
+          {/* 3. INVOICE META INFORMATION BOX */}
+          <div className="border border-slate-300 rounded-lg p-2 bg-white shadow-xs">
+            <div className="grid grid-cols-2 divide-x divide-slate-300">
+              {/* Left Meta */}
+              <div className="pr-3 space-y-0.5">
+                <div className="flex">
+                  <span className="w-24 text-slate-700 font-semibold">Invoice No.</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="font-bold text-[#082C50] font-mono">
+                    {sale.invoiceNumber || 'DBT-2026-000145'}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-slate-700 font-semibold">Invoice Date</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="font-bold text-slate-900">{formattedDate}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-slate-700 font-semibold">Invoice Time</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="font-bold text-slate-900">{formattedTime}</span>
+                </div>
               </div>
+
+              {/* Right Meta */}
+              <div className="pl-3 space-y-0.5">
+                <div className="flex items-center">
+                  <span className="w-26 text-slate-700 font-semibold">Payment Status</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="bg-[#16A34A] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                    {sale.paymentStatus === 'PENDING' ? 'Pending' : 'Paid'}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="w-26 text-slate-700 font-semibold">Payment Mode</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="font-bold text-slate-900">{sale.paymentMethod || 'UPI'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-26 text-slate-700 font-semibold">Sales Executive</span>
+                  <span className="text-slate-500 mr-2">:</span>
+                  <span className="font-bold text-slate-900">
+                    {sale.createdBy?.fullName || 'Ritesh Tihile'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. CUSTOMER DETAILS BOX */}
+          <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+            {/* Header */}
+            <div className="bg-[#082C50] text-white px-2.5 py-0.5 flex items-center gap-1.5 text-[10.5px] font-bold">
+              <User className="w-3 h-3 fill-white text-white" />
+              <span>Customer Details</span>
+            </div>
+            {/* Body */}
+            <div className="p-2 space-y-0.5 bg-white">
               <div className="flex">
-                <span className="w-28 text-slate-700 font-semibold">Sales Executive</span>
+                <span className="w-26 text-slate-700 font-semibold">Customer Name</span>
                 <span className="text-slate-500 mr-2">:</span>
                 <span className="font-bold text-slate-900">
-                  {sale.createdBy?.fullName || 'Ritesh Tihile'}
+                  {sale.customer?.name || sale.customerName || 'Rahul Sharma'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="w-26 text-slate-700 font-semibold">Mobile Number</span>
+                <span className="text-slate-500 mr-2">:</span>
+                <span className="font-bold text-slate-900">
+                  {sale.customer?.phone || sale.customerPhone || '9876543210'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="w-26 text-slate-700 font-semibold">Address</span>
+                <span className="text-slate-500 mr-2">:</span>
+                <span className="font-semibold text-slate-800">
+                  {sale.customer?.address || sale.customerAddress || 'Morshi, Amravati, Maharashtra - 444905'}
                 </span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 4. CUSTOMER DETAILS BOX */}
-        <div className="border border-slate-300 rounded-xl overflow-hidden bg-white shadow-sm">
-          {/* Header */}
-          <div className="bg-[#082C50] text-white px-3 py-1 flex items-center gap-1.5 text-xs font-bold">
-            <User className="w-3.5 h-3.5 fill-white text-white" />
-            <span>Customer Details</span>
-          </div>
-          {/* Body */}
-          <div className="p-2.5 space-y-1 bg-white">
-            <div className="flex">
-              <span className="w-28 text-slate-700 font-semibold">Customer Name</span>
-              <span className="text-slate-500 mr-2">:</span>
-              <span className="font-bold text-slate-900">
-                {sale.customer?.name || sale.customerName || 'Rahul Sharma'}
-              </span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-slate-700 font-semibold">Mobile Number</span>
-              <span className="text-slate-500 mr-2">:</span>
-              <span className="font-bold text-slate-900">
-                {sale.customer?.phone || sale.customerPhone || '9876543210'}
-              </span>
-            </div>
-            <div className="flex">
-              <span className="w-28 text-slate-700 font-semibold">Address</span>
-              <span className="text-slate-500 mr-2">:</span>
-              <span className="font-semibold text-slate-800">
-                {sale.customer?.address || sale.customerAddress || 'Morshi, Amravati, Maharashtra - 444905'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. PRODUCT TABLE */}
-        <div className="border border-slate-300 rounded-xl overflow-hidden bg-white shadow-sm">
-          <table className="w-full border-collapse text-[10px]">
-            <thead>
-              <tr className="bg-[#082C50] text-white font-bold text-center border-b border-slate-300">
-                <th className="py-2 px-1.5 border-r border-slate-600/50 w-8">Sr.<br />No.</th>
-                <th className="py-2 px-2 text-left border-r border-slate-600/50">Product / Description</th>
-                <th className="py-2 px-1 border-r border-slate-600/50 w-24">Model / Variant</th>
-                <th className="py-2 px-1 border-r border-slate-600/50 w-16">HSN /<br />SAC</th>
-                <th className="py-2 px-1 border-r border-slate-600/50 w-10">Qty</th>
-                <th className="py-2 px-1.5 text-right border-r border-slate-600/50 w-20">Unit Price<br />(₹)</th>
-                <th className="py-2 px-1.5 text-right border-r border-slate-600/50 w-16">Discount<br />(₹)</th>
-                <th className="py-2 px-1 border-r border-slate-600/50 w-12">GST<br />(%)</th>
-                <th className="py-2 px-2 text-right w-24">Total Amount<br />(₹)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-300 text-slate-800">
-              {sale.items && sale.items.length > 0 ? (
-                sale.items.map((item, idx) => {
-                  const serials = item.serialNumbersJson
-                    ? JSON.parse(item.serialNumbersJson)
-                    : [];
-
-                  return (
-                    <tr key={idx} className="hover:bg-slate-50/60">
-                      <td className="py-1.5 px-1 text-center font-bold border-r border-slate-300">
-                        {idx + 1}
-                      </td>
-                      <td className="py-1.5 px-2 text-left border-r border-slate-300">
-                        <div className="font-bold text-slate-900">{item.productName}</div>
-                        {serials.length > 0 ? (
-                          <div className="text-[9px] text-orange-600 font-semibold">
-                            Chassis/Serial: {serials.join(', ')}
-                          </div>
-                        ) : (
-                          <div className="text-[9px] text-slate-500">
-                            {item.product?.category?.name || 'Retail Product'}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-1.5 px-1 text-center border-r border-slate-300 font-semibold text-slate-700">
-                        {item.product?.modelNumber || item.product?.brand || 'Standard'}
-                      </td>
-                      <td className="py-1.5 px-1 text-center border-r border-slate-300 font-mono text-slate-600">
-                        {item.hsnCode || (item.gstRate === 5 ? '871160' : item.gstRate === 12 ? '950300' : '851290')}
-                      </td>
-                      <td className="py-1.5 px-1 text-center font-bold border-r border-slate-300">
-                        {item.quantity}
-                      </td>
-                      <td className="py-1.5 px-1.5 text-right border-r border-slate-300 font-semibold">
-                        {formatInr(item.unitPrice)}
-                      </td>
-                      <td className="py-1.5 px-1.5 text-right border-r border-slate-300 text-slate-600">
-                        {formatInr(item.discount || 0)}
-                      </td>
-                      <td className="py-1.5 px-1 text-center border-r border-slate-300 font-semibold">
-                        {item.gstRate}%
-                      </td>
-                      <td className="py-1.5 px-2 text-right font-bold text-slate-900">
-                        {formatInr(item.totalPrice)}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={9} className="py-4 text-center text-slate-400">
-                    No items in this invoice
-                  </td>
+          {/* 5. PRODUCT TABLE */}
+          <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+            <table className="w-full border-collapse text-[9.5px]">
+              <thead>
+                <tr className="bg-[#082C50] text-white font-bold text-center border-b border-slate-300">
+                  <th className="py-1.5 px-1 border-r border-slate-600/50 w-7">Sr.<br />No.</th>
+                  <th className="py-1.5 px-2 text-left border-r border-slate-600/50">Product / Description</th>
+                  <th className="py-1.5 px-1 border-r border-slate-600/50 w-22">Model / Variant</th>
+                  <th className="py-1.5 px-1 border-r border-slate-600/50 w-16">HSN /<br />SAC</th>
+                  <th className="py-1.5 px-1 border-r border-slate-600/50 w-9">Qty</th>
+                  <th className="py-1.5 px-1.5 text-right border-r border-slate-600/50 w-20">Unit Price<br />(₹)</th>
+                  <th className="py-1.5 px-1.5 text-right border-r border-slate-600/50 w-16">Discount<br />(₹)</th>
+                  <th className="py-1.5 px-1 border-r border-slate-600/50 w-12">GST<br />(%)</th>
+                  <th className="py-1.5 px-2 text-right w-22">Total Amount<br />(₹)</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-300 text-slate-800">
+                {sale.items && sale.items.length > 0 ? (
+                  sale.items.map((item, idx) => {
+                    const serials = item.serialNumbersJson
+                      ? JSON.parse(item.serialNumbersJson)
+                      : [];
 
-        {/* 6. FOUR FEATURE BADGES (Warranty, After-Sales, Genuine Accessories, Maintenance) */}
-        <div className="grid grid-cols-4 gap-2.5">
-          <div className="border border-slate-300 rounded-xl p-2 text-center bg-white shadow-xs space-y-0.5">
-            <div className="flex justify-center text-[#E5A823]">
-              <ShieldCheck className="w-5 h-5 fill-[#E5A823]/20" />
-            </div>
-            <div className="font-bold text-[10px] text-slate-900">Warranty</div>
-            <div className="text-[9px] text-slate-500 font-medium">Available</div>
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/60">
+                        <td className="py-1 px-1 text-center font-bold border-r border-slate-300">
+                          {idx + 1}
+                        </td>
+                        <td className="py-1 px-2 text-left border-r border-slate-300">
+                          <div className="font-bold text-slate-900">{item.productName}</div>
+                          {serials.length > 0 ? (
+                            <div className="text-[8.5px] text-orange-600 font-semibold">
+                              Chassis/Serial: {serials.join(', ')}
+                            </div>
+                          ) : (
+                            <div className="text-[8.5px] text-slate-500">
+                              {item.product?.category?.name || 'Retail Product'}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-1 px-1 text-center border-r border-slate-300 font-semibold text-slate-700">
+                          {item.product?.modelNumber || item.product?.brand || 'Standard'}
+                        </td>
+                        <td className="py-1 px-1 text-center border-r border-slate-300 font-mono text-slate-600">
+                          {item.hsnCode || (item.gstRate === 5 ? '871160' : item.gstRate === 12 ? '950300' : '851290')}
+                        </td>
+                        <td className="py-1 px-1 text-center font-bold border-r border-slate-300">
+                          {item.quantity}
+                        </td>
+                        <td className="py-1 px-1.5 text-right border-r border-slate-300 font-semibold">
+                          {formatInr(item.unitPrice)}
+                        </td>
+                        <td className="py-1 px-1.5 text-right border-r border-slate-300 text-slate-600">
+                          {formatInr(item.discount || 0)}
+                        </td>
+                        <td className="py-1 px-1 text-center border-r border-slate-300 font-semibold">
+                          {item.gstRate}%
+                        </td>
+                        <td className="py-1 px-2 text-right font-bold text-slate-900">
+                          {formatInr(item.totalPrice)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="py-3 text-center text-slate-400">
+                      No items in this invoice
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
-          <div className="border border-slate-300 rounded-xl p-2 text-center bg-white shadow-xs space-y-0.5">
-            <div className="flex justify-center text-[#E5A823]">
-              <Wrench className="w-5 h-5 fill-[#E5A823]/20" />
-            </div>
-            <div className="font-bold text-[10px] text-slate-900">After-Sales</div>
-            <div className="text-[9px] text-slate-500 font-medium">Support</div>
-          </div>
-
-          <div className="border border-slate-300 rounded-xl p-2 text-center bg-white shadow-xs space-y-0.5">
-            <div className="flex justify-center text-[#E5A823]">
-              <Zap className="w-5 h-5 fill-[#E5A823]" />
-            </div>
-            <div className="font-bold text-[10px] text-slate-900">Genuine</div>
-            <div className="text-[9px] text-slate-500 font-medium">Accessories</div>
-          </div>
-
-          <div className="border border-slate-300 rounded-xl p-2 text-center bg-white shadow-xs space-y-0.5">
-            <div className="flex justify-center text-[#E5A823]">
-              <Headphones className="w-5 h-5 fill-[#E5A823]/20" />
-            </div>
-            <div className="font-bold text-[10px] text-slate-900">Service &</div>
-            <div className="text-[9px] text-slate-500 font-medium">Maintenance</div>
-          </div>
-        </div>
-
-        {/* 7. AMOUNT IN WORDS & TOTALS BREAKDOWN */}
-        <div className="grid grid-cols-12 gap-3 items-stretch">
-          {/* Left Column: Amount in Words */}
-          <div className="col-span-6 bg-[#FDF6E2] border border-[#FDE68A] rounded-xl p-3 flex items-start gap-2.5 shadow-xs">
-            {/* Golden Rupee Icon Coin */}
-            <div className="w-7 h-7 rounded-full bg-[#E5A823] flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs">
-              ₹
-            </div>
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold text-slate-800 uppercase tracking-wide">
-                Amount in Words :
+          {/* 6. FOUR FEATURE BADGES */}
+          <div className="grid grid-cols-4 gap-2">
+            <div className="border border-slate-300 rounded-lg p-1.5 text-center bg-white shadow-xs space-y-0.5">
+              <div className="flex justify-center text-[#E5A823]">
+                <ShieldCheck className="w-4 h-4 fill-[#E5A823]/20" />
               </div>
-              <div className="font-bold text-[11px] text-[#082C50] leading-snug">
-                {numberToIndianWords(grandTotal)}
+              <div className="font-bold text-[9px] text-slate-900 leading-none">Warranty Available</div>
+            </div>
+
+            <div className="border border-slate-300 rounded-lg p-1.5 text-center bg-white shadow-xs space-y-0.5">
+              <div className="flex justify-center text-[#E5A823]">
+                <Wrench className="w-4 h-4 fill-[#E5A823]/20" />
               </div>
+              <div className="font-bold text-[9px] text-slate-900 leading-none">After-Sales Support</div>
+            </div>
+
+            <div className="border border-slate-300 rounded-lg p-1.5 text-center bg-white shadow-xs space-y-0.5">
+              <div className="flex justify-center text-[#E5A823]">
+                <Zap className="w-4 h-4 fill-[#E5A823]" />
+              </div>
+              <div className="font-bold text-[9px] text-slate-900 leading-none">Genuine Accessories</div>
+            </div>
+
+            <div className="border border-slate-300 rounded-lg p-1.5 text-center bg-white shadow-xs space-y-0.5">
+              <div className="flex justify-center text-[#E5A823]">
+                <Headphones className="w-4 h-4 fill-[#E5A823]/20" />
+              </div>
+              <div className="font-bold text-[9px] text-slate-900 leading-none">Service & Maintenance</div>
             </div>
           </div>
 
-          {/* Right Column: Calculations Breakdown & Grand Total */}
-          <div className="col-span-6 border border-slate-300 rounded-xl overflow-hidden bg-white shadow-xs">
-            <div className="p-2 space-y-1 text-[10px]">
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Subtotal</span>
-                <span className="font-bold text-slate-900">₹ {formatInr(subtotal)}</span>
+          {/* 7. AMOUNT IN WORDS & TOTALS BREAKDOWN */}
+          <div className="grid grid-cols-12 gap-2.5 items-stretch">
+            {/* Left Column: Amount in Words */}
+            <div className="col-span-6 bg-[#FDF6E2] border border-[#FDE68A] rounded-lg p-2.5 flex items-start gap-2 shadow-xs">
+              {/* Golden Rupee Icon Coin */}
+              <div className="w-6 h-6 rounded-full bg-[#E5A823] flex items-center justify-center text-white font-black text-xs shrink-0 shadow-xs">
+                ₹
               </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Product Discount</span>
-                <span className="font-bold text-slate-900">
-                  {totalDiscount > 0 ? `(-) ₹ ${formatInr(totalDiscount)}` : `₹ 0.00`}
-                </span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Taxable Amount</span>
-                <span className="font-bold text-slate-900">₹ {formatInr(taxableAmount)}</span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">CGST ({halfGst}%)</span>
-                <span className="font-bold text-slate-900">₹ {formatInr(halfTax)}</span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">SGST ({halfGst}%)</span>
-                <span className="font-bold text-slate-900">₹ {formatInr(halfTax)}</span>
-              </div>
-            </div>
-
-            {/* Grand Total Golden Bar */}
-            <div className="bg-[#E5A823] text-[#082C50] font-black px-4 py-2 flex justify-between items-center text-xs border-t border-[#EDC554]">
-              <span className="text-sm uppercase tracking-wide">Grand Total</span>
-              <span className="text-base tracking-tight">₹ {formatInr(grandTotal)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 8. TERMS & CONDITIONS AND PAYMENT DETAILS */}
-        <div className="grid grid-cols-2 gap-3 items-stretch">
-          {/* Left: Terms & Conditions */}
-          <div className="border border-slate-300 rounded-xl overflow-hidden bg-white shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="bg-[#082C50] text-white px-3 py-1 flex items-center gap-1.5 text-[10.5px] font-bold">
-                <FileText className="w-3.5 h-3.5" />
-                <span>Terms & Conditions :</span>
-              </div>
-              <div className="p-2 space-y-1 text-[9.5px] text-slate-700">
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-900 shrink-0 mt-0.5" />
-                  <span>Goods once sold will not be taken back or exchanged.</span>
+              <div className="space-y-0.5">
+                <div className="text-[9px] font-bold text-slate-800 uppercase tracking-wide">
+                  Amount in Words :
                 </div>
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-900 shrink-0 mt-0.5" />
-                  <span>Warranty as per manufacturer's policy.</span>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-900 shrink-0 mt-0.5" />
-                  <span>Physical damage / misused products are not covered under warranty.</span>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-900 shrink-0 mt-0.5" />
-                  <span>All disputes are subject to Morshi jurisdiction only.</span>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-900 shrink-0 mt-0.5" />
-                  <span>Please keep the invoice for future service and warranty claims.</span>
+                <div className="font-bold text-[10px] text-[#082C50] leading-snug">
+                  {numberToIndianWords(grandTotal)}
                 </div>
               </div>
             </div>
+
+            {/* Right Column: Calculations Breakdown & Grand Total */}
+            <div className="col-span-6 border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs">
+              <div className="p-1.5 space-y-0.5 text-[9.5px]">
+                <div className="flex justify-between text-slate-700">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-bold text-slate-900">₹ {formatInr(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span className="font-medium">Product Discount</span>
+                  <span className="font-bold text-slate-900">
+                    {totalDiscount > 0 ? `(-) ₹ ${formatInr(totalDiscount)}` : `₹ 0.00`}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span className="font-medium">Taxable Amount</span>
+                  <span className="font-bold text-slate-900">₹ {formatInr(taxableAmount)}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span className="font-medium">CGST ({halfGst}%)</span>
+                  <span className="font-bold text-slate-900">₹ {formatInr(halfTax)}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span className="font-medium">SGST ({halfGst}%)</span>
+                  <span className="font-bold text-slate-900">₹ {formatInr(halfTax)}</span>
+                </div>
+              </div>
+
+              {/* Grand Total Golden Bar */}
+              <div className="bg-[#E5A823] text-[#082C50] font-black px-3 py-1.5 flex justify-between items-center text-[11px] border-t border-[#EDC554]">
+                <span className="uppercase tracking-wide">Grand Total</span>
+                <span className="text-sm tracking-tight">₹ {formatInr(grandTotal)}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Right: Payment Details & QR Code */}
-          <div className="border border-slate-300 rounded-xl overflow-hidden bg-white shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="bg-[#082C50] text-white px-3 py-1 flex items-center gap-1.5 text-[10.5px] font-bold">
-                <CreditCard className="w-3.5 h-3.5" />
-                <span>Payment Details</span>
-              </div>
-              <div className="p-2 flex items-center justify-between gap-2">
-                {/* Bank / UPI Text */}
-                <div className="space-y-1 text-[9.5px]">
-                  <div className="flex">
-                    <span className="w-14 text-slate-600 font-semibold">UPI ID</span>
-                    <span className="text-slate-500 mr-1">:</span>
-                    <span className="font-bold text-slate-900">deepebiketoy@upi</span>
+          {/* 8. TERMS & CONDITIONS AND PAYMENT DETAILS */}
+          <div className="grid grid-cols-2 gap-2.5 items-stretch">
+            {/* Left: Terms & Conditions */}
+            <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="bg-[#082C50] text-white px-2.5 py-0.5 flex items-center gap-1.5 text-[10px] font-bold">
+                  <FileText className="w-3 h-3" />
+                  <span>Terms & Conditions :</span>
+                </div>
+                <div className="p-1.5 space-y-0.5 text-[9px] text-slate-700">
+                  <div className="flex items-start gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-900 shrink-0 mt-0.5" />
+                    <span>Goods once sold will not be taken back or exchanged.</span>
                   </div>
-                  <div className="flex">
-                    <span className="w-14 text-slate-600 font-semibold">Bank</span>
-                    <span className="text-slate-500 mr-1">:</span>
-                    <span className="font-semibold text-slate-900">State Bank of India (SBI)</span>
+                  <div className="flex items-start gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-900 shrink-0 mt-0.5" />
+                    <span>Warranty as per manufacturer's policy.</span>
                   </div>
-                  <div className="flex">
-                    <span className="w-14 text-slate-600 font-semibold">A/c No.</span>
-                    <span className="text-slate-500 mr-1">:</span>
-                    <span className="font-mono font-bold text-slate-900">123456789012</span>
+                  <div className="flex items-start gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-900 shrink-0 mt-0.5" />
+                    <span>Physical damage / misused products are not covered under warranty.</span>
                   </div>
-                  <div className="flex">
-                    <span className="w-14 text-slate-600 font-semibold">IFSC</span>
-                    <span className="text-slate-500 mr-1">:</span>
-                    <span className="font-mono font-bold text-slate-900">SBIN0001234</span>
+                  <div className="flex items-start gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-900 shrink-0 mt-0.5" />
+                    <span>All disputes are subject to Morshi jurisdiction only.</span>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-slate-900 shrink-0 mt-0.5" />
+                    <span>Please keep the invoice for future service and warranty claims.</span>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* QR Code & Scan & Pay */}
-                <div className="flex flex-col items-center">
-                  <div className="border border-slate-400 p-0.5 rounded bg-white shadow-xs">
-                    <img
-                      src={QR_CODE_IMG}
-                      alt="UPI Scan & Pay QR Code"
-                      className="w-14 h-14 object-contain"
-                    />
+            {/* Right: Payment Details & QR Code */}
+            <div className="border border-slate-300 rounded-lg overflow-hidden bg-white shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="bg-[#082C50] text-white px-2.5 py-0.5 flex items-center gap-1.5 text-[10px] font-bold">
+                  <CreditCard className="w-3 h-3" />
+                  <span>Payment Details</span>
+                </div>
+                <div className="p-1.5 flex items-center justify-between gap-1.5">
+                  {/* Bank / UPI Text */}
+                  <div className="space-y-0.5 text-[9px]">
+                    <div className="flex">
+                      <span className="w-13 text-slate-600 font-semibold">UPI ID</span>
+                      <span className="text-slate-500 mr-1">:</span>
+                      <span className="font-bold text-slate-900">deepebiketoy@upi</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-13 text-slate-600 font-semibold">Bank</span>
+                      <span className="text-slate-500 mr-1">:</span>
+                      <span className="font-semibold text-slate-900">State Bank of India (SBI)</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-13 text-slate-600 font-semibold">A/c No.</span>
+                      <span className="text-slate-500 mr-1">:</span>
+                      <span className="font-mono font-bold text-slate-900">123456789012</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-13 text-slate-600 font-semibold">IFSC</span>
+                      <span className="text-slate-500 mr-1">:</span>
+                      <span className="font-mono font-bold text-slate-900">SBIN0001234</span>
+                    </div>
                   </div>
-                  <div className="bg-[#082C50] text-white text-[8.5px] font-bold px-2 py-0.5 rounded-full mt-1">
-                    Scan & Pay
+
+                  {/* QR Code & Scan & Pay */}
+                  <div className="flex flex-col items-center">
+                    <div className="border border-slate-400 p-0.5 rounded bg-white shadow-xs">
+                      <img
+                        src={QR_CODE_IMG}
+                        alt="UPI Scan & Pay QR Code"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <div className="bg-[#082C50] text-white text-[8px] font-bold px-2 py-0.5 rounded-full mt-0.5">
+                      Scan & Pay
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 9. SIGNATURES & THANK YOU */}
-        <div className="grid grid-cols-3 items-end pt-3 text-center">
-          {/* Left: Customer Signature */}
-          <div className="space-y-1">
-            <div className="h-9 flex items-end justify-center">
+          {/* 9. SIGNATURES & THANK YOU (CLEAN, NO DUPLICATION, NO CLIPPING) */}
+          <div className="grid grid-cols-3 items-end pt-1 pb-1 text-center">
+            {/* Left: Customer Signature */}
+            <div className="flex justify-center items-end">
               <img
                 src={SIGN_CUSTOMER_IMG}
                 alt="Customer Signature"
-                className="h-8 object-contain"
+                className="h-13 max-h-13 object-contain"
               />
             </div>
-            <div className="w-40 mx-auto border-t border-slate-800 pt-1">
-              <p className="font-bold text-[10px] text-slate-900">Customer Signature</p>
+
+            {/* Center: Thank You Banner */}
+            <div className="flex justify-center items-end">
+              <img
+                src={THANK_YOU_IMG}
+                alt="Thank You for Shopping with DEEP E-BIKE & TOY"
+                className="h-13 max-h-13 object-contain"
+              />
             </div>
-          </div>
 
-          {/* Center: Thank You Banner */}
-          <div className="flex justify-center items-center">
-            <img
-              src={THANK_YOU_IMG}
-              alt="Thank You for Shopping with DEEP E-BIKE & TOY"
-              className="h-14 object-contain"
-            />
-          </div>
-
-          {/* Right: Authorized Signature */}
-          <div className="space-y-1">
-            <div className="h-9 flex items-end justify-center">
+            {/* Right: Authorized Signature */}
+            <div className="flex justify-center items-end">
               <img
                 src={SIGN_AUTH_IMG}
                 alt="Authorized Signature"
-                className="h-8 object-contain"
+                className="h-13 max-h-13 object-contain"
               />
-            </div>
-            <div className="w-40 mx-auto border-t border-slate-800 pt-1">
-              <p className="font-bold text-[10px] text-slate-900">Authorized Signature</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 10. BOTTOM BANNER RIBBON (Exact Reference Bottom Wave) */}
+      {/* 10. BOTTOM BANNER RIBBON (COMPLETE, UNCUT, NO SIGNATURE TEXT) */}
       <div className="w-full">
         <img
           src={BOTTOM_BANNER_IMG}

@@ -275,21 +275,21 @@ export class PdfService {
     doc.rect(500, bottomSectionY + 54, 48, 10).fill(navyColor);
     doc.fillColor('#FFFFFF').fontSize(5.5).font('Helvetica-Bold').text('Scan & Pay', 500, bottomSectionY + 56, { align: 'center', width: 48 });
 
-    // 9. Signatures & Thank You Section
-    const sigY = bottomSectionY + 88;
+    // 9. Signatures & Thank You Section (3-Column Layout: Blank spaces + Thin black lines)
+    const sigY = bottomSectionY + 84;
 
-    // Customer Signature
-    doc.moveTo(45, sigY + 22).lineTo(165, sigY + 22).strokeColor('#475569').stroke();
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#0F172A').text('Customer Signature', 45, sigY + 25, { align: 'center', width: 120 });
+    // Left: Customer Signature (Blank 25-30mm space + Line + Label)
+    doc.moveTo(45, sigY + 36).lineTo(175, sigY + 36).lineWidth(0.8).strokeColor('#0F172A').stroke();
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#0F172A').text('Customer Signature', 45, sigY + 40, { align: 'center', width: 130 });
 
-    // Center Thank You
-    doc.fillColor('#92400E').fontSize(11).font('Helvetica-Bold').text('Thank You!', 195, sigY + 6, { align: 'center', width: 180 });
-    doc.fillColor('#64748B').fontSize(7).font('Helvetica').text('for Shopping with', 195, sigY + 18, { align: 'center', width: 180 });
-    doc.fillColor(navyColor).fontSize(7.5).font('Helvetica-Bold').text('DEEP E-BIKE & TOY', 195, sigY + 27, { align: 'center', width: 180 });
+    // Center: Thank You
+    doc.fillColor('#B45309').fontSize(12).font('Helvetica-Bold').text('Thank You!', 195, sigY + 12, { align: 'center', width: 180 });
+    doc.fillColor('#64748B').fontSize(7.5).font('Helvetica').text('for Shopping with', 195, sigY + 26, { align: 'center', width: 180 });
+    doc.fillColor(navyColor).fontSize(8.5).font('Helvetica-Bold').text('DEEP E-BIKE & TOY', 195, sigY + 36, { align: 'center', width: 180 });
 
-    // Authorized Signature
-    doc.moveTo(405, sigY + 22).lineTo(525, sigY + 22).strokeColor('#475569').stroke();
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#0F172A').text('Authorized Signature', 405, sigY + 25, { align: 'center', width: 120 });
+    // Right: Authorized Signature (Blank 25-30mm space + Line + Label)
+    doc.moveTo(395, sigY + 36).lineTo(525, sigY + 36).lineWidth(0.8).strokeColor('#0F172A').stroke();
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#0F172A').text('Authorized Signature', 395, sigY + 40, { align: 'center', width: 130 });
 
     // 10. Bottom Banner
     doc.rect(25, 792, 545, 25).fill(navyColor);

@@ -8,8 +8,6 @@ import {
   TOYS_BASE64 as TOYS_IMG,
   QR_CODE_BASE64 as QR_CODE_IMG,
   THANK_YOU_BASE64 as THANK_YOU_IMG,
-  SIGN_CUSTOMER_BASE64 as SIGN_CUSTOMER_IMG,
-  SIGN_AUTH_BASE64 as SIGN_AUTH_IMG,
 } from './invoiceAssets';
 import {
   ShieldCheck,
@@ -90,7 +88,7 @@ export const A4Invoice: React.FC<A4InvoiceProps> = ({ sale }) => {
           </div>
         </div>
 
-        <div className="px-4 pt-1.5 pb-2 space-y-2">
+        <div className="px-4 pt-1.5 pb-1 space-y-2">
           {/* 2. HERO VISUAL SECTION: SCOOTERS | TAX INVOICE | TOYS */}
           <div className="grid grid-cols-12 items-center gap-1">
             {/* Left: Electric Scooters */}
@@ -147,7 +145,7 @@ export const A4Invoice: React.FC<A4InvoiceProps> = ({ sale }) => {
                   <span className="w-24 text-slate-700 font-semibold">Invoice No.</span>
                   <span className="text-slate-500 mr-2">:</span>
                   <span className="font-bold text-[#082C50] font-mono">
-                    {sale.invoiceNumber || 'DBT-2026-000145'}
+                    {sale.invoiceNumber || 'INV-2026-0013'}
                   </span>
                 </div>
                 <div className="flex">
@@ -167,7 +165,7 @@ export const A4Invoice: React.FC<A4InvoiceProps> = ({ sale }) => {
                 <div className="flex items-center">
                   <span className="w-26 text-slate-700 font-semibold">Payment Status</span>
                   <span className="text-slate-500 mr-2">:</span>
-                  <span className="bg-[#16A34A] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                  <span className="bg-[#16A34A] text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                     {sale.paymentStatus === 'PENDING' ? 'Pending' : 'Paid'}
                   </span>
                 </div>
@@ -463,39 +461,45 @@ export const A4Invoice: React.FC<A4InvoiceProps> = ({ sale }) => {
             </div>
           </div>
 
-          {/* 9. SIGNATURES & THANK YOU (CLEAN, NO DUPLICATION, NO CLIPPING) */}
-          <div className="grid grid-cols-3 items-end pt-1 pb-1 text-center">
-            {/* Left: Customer Signature */}
-            <div className="flex justify-center items-end">
-              <img
-                src={SIGN_CUSTOMER_IMG}
-                alt="Customer Signature"
-                className="h-13 max-h-13 object-contain"
-              />
+          {/* 9. SIGNATURES & THANK YOU (EXACT 3-COLUMN CSS GRID - BLANK SIGNATURE SPACES) */}
+          <div className="grid grid-cols-12 items-end pt-3 pb-2 text-center">
+            {/* Left Column: Customer Signature (Blank 25-30mm White Space + Line + Text) */}
+            <div className="col-span-4 flex flex-col items-center justify-end">
+              {/* 25-30mm blank white space for handwritten customer signature */}
+              <div className="h-16 w-full bg-white" />
+              {/* Thin black signature line */}
+              <div className="w-44 border-t border-slate-900 mx-auto" />
+              {/* Customer Signature text below */}
+              <p className="font-bold text-[10.5px] text-slate-900 mt-1.5 tracking-wide">
+                Customer Signature
+              </p>
             </div>
 
-            {/* Center: Thank You Banner */}
-            <div className="flex justify-center items-end">
+            {/* Center Column: Thank You Section (Centered, Uncropped, No Overlap) */}
+            <div className="col-span-4 flex flex-col items-center justify-center">
               <img
                 src={THANK_YOU_IMG}
                 alt="Thank You for Shopping with DEEP E-BIKE & TOY"
-                className="h-13 max-h-13 object-contain"
+                className="h-16 w-auto object-contain mx-auto"
               />
             </div>
 
-            {/* Right: Authorized Signature */}
-            <div className="flex justify-center items-end">
-              <img
-                src={SIGN_AUTH_IMG}
-                alt="Authorized Signature"
-                className="h-13 max-h-13 object-contain"
-              />
+            {/* Right Column: Authorized Signature (Blank 25-30mm White Space + Line + Text) */}
+            <div className="col-span-4 flex flex-col items-center justify-end">
+              {/* 25-30mm blank white space for handwritten authorized signature */}
+              <div className="h-16 w-full bg-white" />
+              {/* Thin black signature line */}
+              <div className="w-44 border-t border-slate-900 mx-auto" />
+              {/* Authorized Signature text below */}
+              <p className="font-bold text-[10.5px] text-slate-900 mt-1.5 tracking-wide">
+                Authorized Signature
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 10. BOTTOM BANNER RIBBON (COMPLETE, UNCUT, NO SIGNATURE TEXT) */}
+      {/* 10. FOOTER (COMPLETE NAVY & GOLD FOOTER RIBBON, CLEANLY PLACED BELOW SIGNATURES) */}
       <div className="w-full">
         <img
           src={BOTTOM_BANNER_IMG}

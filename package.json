@@ -1,0 +1,25 @@
+{
+  "name": "deep-ebike-and-toy",
+  "version": "1.0.0",
+  "description": "DEEP E-BIKE & TOY - Retail Shop Management System",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "build:server": "npm run build --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build": "npm run build:server && npm run build:client",
+    "db:push": "npm run prisma:push --prefix server",
+    "db:seed": "npm run prisma:seed --prefix server",
+    "electron:dev": "electron electron/dist/main.js"
+  },
+  "keywords": [
+    "pos",
+    "retail",
+    "ebike",
+    "inventory",
+    "billing",
+    "offline-sync"
+  ],
+  "author": "DEEP E-BIKE & TOY",
+  "license": "ISC"
+}

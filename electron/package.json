@@ -1,0 +1,21 @@
+{
+  "name": "deep-ebike-desktop",
+  "version": "1.0.0",
+  "description": "DEEP E-BIKE & TOY Desktop POS Management System",
+  "main": "dist/main.js",
+  "author": "DEEP E-BIKE & TOY",
+  "license": "ISC",
+  "scripts": {
+    "build:electron": "tsc",
+    "build:app": "npm run build --prefix ../client && npm run build --prefix ../server",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis",
+    "start": "electron dist/main.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3"
+  }
+}

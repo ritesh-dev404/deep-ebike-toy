@@ -1,0 +1,396 @@
+// Prisma schema for DEEP E-BIKE & TOY Management System
+// Supports both offline SQLite and online PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Roles
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique // "OWNER", "EMPLOYEE"
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+// 2. Permissions
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  module      String // "SALES", "PRODUCTS", "PURCHASES", "REPORTS", "USERS", "SETTINGS"
+  action      String // "CREATE", "READ", "UPDATE", "DELETE", "EXPORT"
+  description String?
+  createdAt   DateTime         @default(now())
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+// 3. Role Permissions Junction
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// 4. Users
+model User {
+  id           String          @id @default(uuid())
+  username     String          @unique
+  email        String?         @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  roleId       String
+  role         Role            @relation(fields: [roleId], references: [id])
+  isActive     Boolean         @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  sales        Sale[]          @relation("UserSales")
+  purchases    Purchase[]      @relation("UserPurchases")
+  returns      Return[]        @relation("UserReturns")
+  auditLogs    AuditLog[]
+  movements    StockMovement[]
+
+  @@map("users")
+}
+
+// 5. Categories
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  code        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@map("categories")
+}
+
+// 6. Products
+model Product {
+  id                String                @id @default(uuid())
+  productCode       String                @unique // SKU e.g. "DEB-001"
+  name              String
+  categoryId        String
+  category          Category              @relation(fields: [categoryId], references: [id])
+  brand             String?
+  modelNumber       String?
+  barcode           String?               @unique
+  purchasePrice     Float                 @default(0.0)
+  sellingPrice      Float                 @default(0.0)
+  gstRate           Float                 @default(0.0) // 0%, 5%, 12%, 18%, 28%
+  availableQuantity Int                   @default(0)
+  minStockLevel     Int                   @default(3)
+  imageUrl          String?
+  description       String?
+  isSerialTracked   Boolean               @default(false) // e.g. For e-bikes/scooters chassis
+  status            String                @default("ACTIVE") // ACTIVE, INACTIVE, OUT_OF_STOCK
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  purchaseItems     PurchaseItem[]
+  saleItems         SaleItem[]
+  stockMovements    StockMovement[]
+  serialNumbers     ProductSerialNumber[]
+
+  @@index([categoryId])
+  @@index([barcode])
+  @@index([name])
+  @@map("products")
+}
+
+// 7. Product Serial Numbers / Chassis Numbers
+model ProductSerialNumber {
+  id            String    @id @default(uuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  serialNumber  String    @unique
+  chassisNumber String?
+  status        String    @default("AVAILABLE") // AVAILABLE, SOLD, RETURNED, DEFECTIVE
+  purchaseId    String?
+  purchase      Purchase? @relation(fields: [purchaseId], references: [id])
+  saleId        String?
+  sale          Sale?     @relation(fields: [saleId], references: [id])
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([serialNumber])
+  @@map("product_serial_numbers")
+}
+
+// 8. Suppliers
+model Supplier {
+  id                 String     @id @default(uuid())
+  name               String
+  contactPerson      String?
+  phone              String
+  email              String?
+  address            String?
+  gstNumber          String?
+  outstandingBalance Float      @default(0.0)
+  status             String     @default("ACTIVE")
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  purchases          Purchase[]
+
+  @@index([phone])
+  @@map("suppliers")
+}
+
+// 9. Customers
+model Customer {
+  id                String    @id @default(uuid())
+  name              String
+  phone             String    @unique
+  email             String?
+  address           String?
+  totalPurchases    Float     @default(0.0)
+  lastPurchaseDate  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  sales             Sale[]
+  returns           Return[]
+
+  @@index([phone])
+  @@index([name])
+  @@map("customers")
+}
+
+// 10. Purchases
+model Purchase {
+  id             String                @id @default(uuid())
+  invoiceNumber  String                @unique
+  supplierId     String
+  supplier       Supplier              @relation(fields: [supplierId], references: [id])
+  purchaseDate   DateTime              @default(now())
+  totalAmount    Float                 @default(0.0)
+  taxAmount      Float                 @default(0.0)
+  discountAmount Float                 @default(0.0)
+  grandTotal     Float                 @default(0.0)
+  paidAmount     Float                 @default(0.0)
+  paymentStatus  String                @default("PAID") // PAID, PARTIAL, UNPAID
+  notes          String?
+  createdById    String
+  createdBy      User                  @relation("UserPurchases", fields: [createdById], references: [id])
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  items          PurchaseItem[]
+  serialNumbers  ProductSerialNumber[]
+
+  @@index([supplierId])
+  @@index([invoiceNumber])
+  @@map("purchases")
+}
+
+// 11. Purchase Items
+model PurchaseItem {
+  id                 String   @id @default(uuid())
+  purchaseId         String
+  purchase           Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id])
+  quantity           Int
+  unitPurchasePrice  Float
+  gstRate            Float    @default(0.0)
+  taxAmount          Float    @default(0.0)
+  totalPrice         Float
+  serialNumbersJson  String?  // JSON string array of serials attached
+
+  @@map("purchase_items")
+}
+
+// 12. Sales (Invoices)
+model Sale {
+  id             String                @id @default(uuid())
+  invoiceNumber  String                @unique
+  customerId     String?
+  customer       Customer?             @relation(fields: [customerId], references: [id])
+  customerName   String?               // For walk-in customers when customerId is null
+  customerPhone  String?
+  saleDate       DateTime              @default(now())
+  subtotal       Float
+  taxAmount      Float                 @default(0.0)
+  discountAmount Float                 @default(0.0)
+  grandTotal     Float
+  paymentMethod  String                @default("CASH") // CASH, UPI, CARD, OTHER, SPLIT
+  paymentStatus  String                @default("PAID") // PAID, PARTIAL, CANCELLED
+  amountReceived Float
+  changeAmount   Float                 @default(0.0)
+  status         String                @default("COMPLETED") // COMPLETED, CANCELLED
+  notes          String?
+  createdById    String
+  createdBy      User                  @relation("UserSales", fields: [createdById], references: [id])
+  isSynced       Boolean               @default(false)
+  syncedAt       DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  items          SaleItem[]
+  serialNumbers  ProductSerialNumber[]
+  payments       Payment[]
+  returns        Return[]
+
+  @@index([invoiceNumber])
+  @@index([saleDate])
+  @@index([createdById])
+  @@map("sales")
+}
+
+// 13. Sale Items (Stores historical cost and price)
+model SaleItem {
+  id                String   @id @default(uuid())
+  saleId            String
+  sale              Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id])
+  productName       String   // Preserved historical name
+  quantity          Int
+  unitPrice         Float    // Selling price at time of sale
+  costPrice         Float    // Historical purchase price at time of sale for accurate gross profit!
+  discount          Float    @default(0.0)
+  gstRate           Float    @default(0.0)
+  taxAmount         Float    @default(0.0)
+  totalPrice        Float
+  serialNumbersJson String?  // Serial numbers assigned to this line
+
+  @@map("sale_items")
+}
+
+// 14. Payments (Supports multiple payments / split payments)
+model Payment {
+  id             String   @id @default(uuid())
+  referenceType  String   // "SALE", "PURCHASE"
+  referenceId    String
+  sale           Sale?    @relation(fields: [referenceId], references: [id])
+  amount         Float
+  paymentMethod  String   // CASH, UPI, CARD, OTHER
+  transactionRef String?
+  paymentDate    DateTime @default(now())
+  notes          String?
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  @@index([referenceId])
+  @@map("payments")
+}
+
+// 15. Stock Movements (Comprehensive inventory audit trail)
+model StockMovement {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  movementType  String   // PURCHASE, SALE, RETURN, ADJUSTMENT_ADD, ADJUSTMENT_SUB
+  quantity      Int      // Positive or negative
+  previousStock Int
+  newStock      Int
+  referenceId   String?  // saleId, purchaseId, returnId
+  referenceType String?  // "SALE", "PURCHASE", "RETURN", "MANUAL_ADJUSTMENT"
+  notes         String?
+  createdById   String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+// 16. Returns & Stock Restoration
+model Return {
+  id           String   @id @default(uuid())
+  returnNumber String   @unique
+  saleId       String
+  sale         Sale     @relation(fields: [saleId], references: [id])
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  returnDate   DateTime @default(now())
+  refundAmount Float
+  reason       String?
+  status       String   @default("COMPLETED") // COMPLETED, REJECTED
+  itemsJson    String   // Details of returned products & quantities
+  createdById  String
+  createdBy    User     @relation("UserReturns", fields: [createdById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@map("returns")
+}
+
+// 17. Expenses
+model Expense {
+  id            String   @id @default(uuid())
+  title         String
+  category      String   // RENT, ELECTRICITY, SALARY, MAINTENANCE, MARKETING, TEA_SNACKS, OTHER
+  amount        Float
+  expenseDate   DateTime @default(now())
+  paymentMethod String   @default("CASH")
+  notes         String?
+  createdById   String
+  createdAt     DateTime @default(now())
+
+  @@map("expenses")
+}
+
+// 18. Audit Logs
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String   // LOGIN, LOGOUT, CREATE_SALE, CANCEL_SALE, STOCK_ADJUST, EDIT_PRODUCT, EXPORT_DATA
+  entityName String   // "Sale", "Product", "Purchase", "User", "Settings"
+  entityId   String?
+  oldValues  String?  // JSON
+  newValues  String?  // JSON
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityName])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// 19. Sync Queue (For Offline -> Online background synchronization)
+model SyncQueue {
+  id           String    @id @default(uuid())
+  entityName   String    // "Sale", "Customer", "Product", "StockMovement", "Return"
+  entityId     String
+  action       String    // "CREATE", "UPDATE", "DELETE"
+  payload      String    // JSON data
+  status       String    @default("PENDING") // PENDING, SYNCED, FAILED
+  retryCount   Int       @default(0)
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  syncedAt     DateTime?
+
+  @@index([status])
+  @@map("sync_queue")
+}
+
+// 20. Application Settings
+model ApplicationSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String   // JSON or string value
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("application_settings")
+}

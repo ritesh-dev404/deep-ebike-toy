@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// Configurable API base URL:
+// - Defaults to '/api' for local development (Vite proxy) and offline desktop Electron
+// - Configurable via VITE_API_URL on Vercel (e.g. 'https://deep-backend.onrender.com/api')
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 import { Product, Category } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { Badge } from '../components/common/Badge';
@@ -79,7 +79,7 @@ export const ProductsPage: React.FC = () => {
   };
 
   const handleExportExcel = () => {
-    window.open('/api/products/export/excel', '_blank');
+    window.open(`${API_BASE_URL}/products/export/excel`, '_blank');
   };
 
   const handleOpenAddModal = () => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sale } from '../../types';
+import { API_BASE_URL } from '../../api/client';
 import { Modal } from '../common/Modal';
 import { ThermalReceipt } from './ThermalReceipt';
 import { A4Invoice } from './A4Invoice';
@@ -34,7 +35,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   };
 
   const handleDownloadPdf = () => {
-    window.open(`/api/billing/${sale.id}/pdf`, '_blank');
+    window.open(`${API_BASE_URL}/billing/${sale.id}/pdf`, '_blank');
   };
 
   return (

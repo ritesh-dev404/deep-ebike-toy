@@ -39,6 +39,8 @@ async function ensureServerRunning() {
       ...process.env,
       PORT: String(PORT),
       NODE_ENV: 'production',
+      DATABASE_TYPE: 'sqlite',
+      DATABASE_URL: 'file:./deep_pos.db',
     },
     stdio: 'ignore',
   });

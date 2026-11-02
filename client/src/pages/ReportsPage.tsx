@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 import { Sale } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { Badge } from '../components/common/Badge';
@@ -52,7 +52,7 @@ export const ReportsPage: React.FC = () => {
   };
 
   const handleExportExcel = () => {
-    window.open('/api/reports/export/sales-excel', '_blank');
+    window.open(`${API_BASE_URL}/reports/export/sales-excel`, '_blank');
   };
 
   const handleOpenInvoice = async (id: string) => {

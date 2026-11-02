@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 import {
   Settings,
   Database,
@@ -66,7 +66,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   const handleDownloadDb = () => {
-    window.open('/api/settings/backup/download', '_blank');
+    window.open(`${API_BASE_URL}/settings/backup/download`, '_blank');
   };
 
   return (

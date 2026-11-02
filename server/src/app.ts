@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import path from 'path';
 import fs from 'fs';
 import routes from './routes';
+import { ENV } from './config/env';
 import { errorHandler } from './middlewares/error.middleware';
 import { apiLimiter } from './middlewares/rateLimiter.middleware';
 
@@ -17,12 +18,40 @@ app.use(
   })
 );
 
-// CORS setup
+// Configured allowed origins from FRONTEND_URL environment variable
+const configuredFrontendUrls = ENV.FRONTEND_URL
+  ? ENV.FRONTEND_URL.split(',').map((url) => url.trim().replace(/\/$/, ''))
+  : [];
+
+// Dynamic CORS configuration allowing Vercel domain, local development, and Electron desktop
 app.use(
   cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, Electron desktop apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // If in development mode or wildcard allowed, permit all
+      if (ENV.NODE_ENV === 'development' || configuredFrontendUrls.includes('*')) {
+        return callback(null, true);
+      }
+
+      // Check if origin matches FRONTEND_URL or Vercel preview deployment
+      const isAllowed =
+        configuredFrontendUrls.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:');
+
+      if (isAllowed || configuredFrontendUrls.length === 0) {
+        return callback(null, true);
+      }
+
+      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 

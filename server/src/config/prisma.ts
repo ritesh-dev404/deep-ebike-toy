@@ -14,9 +14,11 @@ import { ENV } from './env';
  *    Uses default SQLite Prisma Client.
  */
 const isPostgres = Boolean(
-  process.env.DATABASE_TYPE !== 'sqlite' &&
-  ((ENV.NEON_DATABASE_URL && !ENV.NEON_DATABASE_URL.includes('placeholder')) ||
-   (ENV.DATABASE_URL && (ENV.DATABASE_URL.startsWith('postgresql://') || ENV.DATABASE_URL.startsWith('postgres://'))))
+  process.env.DATABASE_TYPE === 'postgresql' ||
+  process.env.DATABASE_TYPE === 'postgres' ||
+  (process.env.DATABASE_TYPE !== 'sqlite' &&
+   ((ENV.NEON_DATABASE_URL && !ENV.NEON_DATABASE_URL.includes('placeholder')) ||
+    (ENV.DATABASE_URL && (ENV.DATABASE_URL.startsWith('postgresql://') || ENV.DATABASE_URL.startsWith('postgres://')))))
 );
 
 const resolvedUrl = isPostgres

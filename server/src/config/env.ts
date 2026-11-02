@@ -11,6 +11,7 @@ if (process.env.NODE_ENV === 'production' && (!configuredSecret || configuredSec
 export const ENV = {
   PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
+  DATABASE_TYPE: process.env.DATABASE_TYPE || (process.env.NEON_DATABASE_URL && !process.env.NEON_DATABASE_URL.includes('placeholder') ? 'postgresql' : 'sqlite'),
   DATABASE_URL: process.env.DATABASE_URL || 'file:./deep_pos.db',
   NEON_DATABASE_URL: process.env.NEON_DATABASE_URL || '',
   JWT_SECRET: configuredSecret || defaultDevSecret,

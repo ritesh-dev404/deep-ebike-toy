@@ -6,12 +6,19 @@ import { logAudit } from '../services/audit.service';
 
 export const getAllSettings = async (req: Request, res: Response) => {
   try {
+    const isOwner = req.user?.roleName === 'OWNER';
     const settings = await prisma.applicationSetting.findMany({
       orderBy: { key: 'asc' },
     });
 
     const settingsMap: Record<string, string> = {};
+    const SENSITIVE_KEYS = ['SECRET', 'PASSWORD', 'TOKEN', 'KEY', 'DATABASE_URL'];
+
     settings.forEach((s) => {
+      // Security: Never leak sensitive configurations or credentials to non-owners
+      if (!isOwner && SENSITIVE_KEYS.some((sens) => s.key.toUpperCase().includes(sens))) {
+        return;
+      }
       settingsMap[s.key] = s.value;
     });
 

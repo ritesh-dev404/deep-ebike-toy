@@ -4,10 +4,10 @@
   "description": "Backend API for DEEP E-BIKE & TOY Management System",
   "main": "dist/server.js",
   "scripts": {
-    "build": "prisma generate && prisma generate --schema=prisma/schema.postgres.prisma && tsc",
+    "build": "node scripts/generate-clients.js && tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "prisma:generate": "prisma generate && prisma generate --schema=prisma/schema.postgres.prisma",
+    "prisma:generate": "node scripts/generate-clients.js",
     "prisma:generate:sqlite": "prisma generate",
     "prisma:generate:postgres": "prisma generate --schema=prisma/schema.postgres.prisma",
     "prisma:migrate": "prisma migrate dev",

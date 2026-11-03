@@ -2,11 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/client';
 import { User } from '../types';
 
+interface SetupPayload {
+  username: string;
+  password: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  setupRequired: boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  initialSetup: (data: SetupPayload) => Promise<{ success: boolean; message?: string }>;
+  checkSetupStatus: () => Promise<boolean>;
   logout: () => void;
   isOwner: boolean;
   hasPermission: (permission: string) => boolean;
@@ -18,21 +29,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [setupRequired, setSetupRequired] = useState<boolean>(false);
+
+  const checkSetupStatus = async (): Promise<boolean> => {
+    try {
+      const res = await api.get('/auth/setup-status');
+      if (res.data.success) {
+        const required = Boolean(res.data.data.setupRequired);
+        setSetupRequired(required);
+        return required;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('deep_pos_token');
-    const savedUser = localStorage.getItem('deep_pos_user');
+    const initAuth = async () => {
+      const savedToken = localStorage.getItem('deep_pos_token');
+      const savedUser = localStorage.getItem('deep_pos_user');
 
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('deep_pos_token');
-        localStorage.removeItem('deep_pos_user');
+      if (savedToken && savedUser) {
+        try {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          localStorage.removeItem('deep_pos_token');
+          localStorage.removeItem('deep_pos_user');
+        }
+      } else {
+        await checkSetupStatus();
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -42,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { token: newToken, user: newUser } = response.data.data;
         setToken(newToken);
         setUser(newUser);
+        setSetupRequired(false);
         localStorage.setItem('deep_pos_token', newToken);
         localStorage.setItem('deep_pos_user', JSON.stringify(newUser));
 
@@ -66,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = JSON.parse(cached);
         setToken(data.token);
         setUser(data.user);
+        setSetupRequired(false);
         return { success: true, message: 'Logged in using Offline Cached Session' };
       }
 
@@ -74,11 +108,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('deep_pos_token');
-    localStorage.removeItem('deep_pos_user');
+  const initialSetup = async (data: SetupPayload) => {
+    try {
+      const res = await api.post('/auth/setup', data);
+      if (res.data.success) {
+        const { token: newToken, user: newUser } = res.data.data;
+        setToken(newToken);
+        setUser(newUser);
+        setSetupRequired(false);
+        localStorage.setItem('deep_pos_token', newToken);
+        localStorage.setItem('deep_pos_user', JSON.stringify(newUser));
+        return { success: true };
+      }
+      return { success: false, message: res.data.message || 'Setup failed' };
+    } catch (error: any) {
+      const msg = error.response?.data?.message || error.message || 'Setup failed';
+      return { success: false, message: msg };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout').catch(() => {});
+    } finally {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('deep_pos_token');
+      localStorage.removeItem('deep_pos_user');
+      checkSetupStatus();
+    }
   };
 
   const isOwner = user?.role === 'OWNER';
@@ -95,7 +153,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         token,
         isLoading,
+        setupRequired,
         login,
+        initialSetup,
+        checkSetupStatus,
         logout,
         isOwner,
         hasPermission,

@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Lock, User, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Zap, Lock, User, AlertCircle, ShieldCheck, Phone, Mail, UserCheck } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, initialSetup, setupRequired } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // First-time setup state
+  const [setupForm, setSetupForm] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    phone: '',
+    email: '',
+  });
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
@@ -17,6 +27,36 @@ export const LoginPage: React.FC = () => {
     const res = await login(username, password);
     if (!res.success) {
       setError(res.message || 'Login failed');
+    }
+    setIsLoading(false);
+  };
+
+  const handleSetupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (setupForm.password !== setupForm.confirmPassword) {
+      setError('Passwords do not match. Please verify your password.');
+      return;
+    }
+
+    if (setupForm.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    const res = await initialSetup({
+      username: setupForm.username,
+      password: setupForm.password,
+      fullName: setupForm.fullName,
+      phone: setupForm.phone || undefined,
+      email: setupForm.email || undefined,
+    });
+
+    if (!res.success) {
+      setError(res.message || 'First-time setup failed');
     }
     setIsLoading(false);
   };
@@ -45,92 +85,213 @@ export const LoginPage: React.FC = () => {
 
         {/* Card */}
         <div className="bg-slate-800/90 backdrop-blur-md rounded-2xl p-8 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+          {setupRequired ? (
+            /* First-Time Setup UI */
             <div>
-              <h2 className="text-lg font-bold text-white">Sign In to POS</h2>
-              <p className="text-xs text-slate-400">Enter your credentials to continue</p>
-            </div>
-            <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-          </div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+                <div>
+                  <h2 className="text-lg font-bold text-white">First-Time Setup</h2>
+                  <p className="text-xs text-orange-400 font-medium">Create your initial Store Owner account</p>
+                </div>
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+              </div>
 
-          {error && (
-            <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-              <span>{error}</span>
+              {error && (
+                <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSetupSubmit} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                    Owner Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={setupForm.fullName}
+                    onChange={(e) => setSetupForm({ ...setupForm, fullName: e.target.value })}
+                    placeholder="e.g. Deepak Sharma"
+                    className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={setupForm.username}
+                      onChange={(e) => setSetupForm({ ...setupForm, username: e.target.value })}
+                      placeholder="e.g. owner"
+                      className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={setupForm.phone}
+                      onChange={(e) => setSetupForm({ ...setupForm, phone: e.target.value })}
+                      placeholder="9876543210"
+                      className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    value={setupForm.email}
+                    onChange={(e) => setSetupForm({ ...setupForm, email: e.target.value })}
+                    placeholder="owner@deepebikeandtoy.com"
+                    className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={setupForm.password}
+                      onChange={(e) => setSetupForm({ ...setupForm, password: e.target.value })}
+                      placeholder="Min 6 chars"
+                      className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={setupForm.confirmPassword}
+                      onChange={(e) => setSetupForm({ ...setupForm, confirmPassword: e.target.value })}
+                      placeholder="Repeat password"
+                      className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-4 py-3 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? 'Creating Owner Account...' : 'Complete First-Time Setup'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* Standard Sign In UI */
+            <div>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+                <div>
+                  <h2 className="text-lg font-bold text-white">Sign In to POS</h2>
+                  <p className="text-xs text-slate-400">Enter your credentials to continue</p>
+                </div>
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+              </div>
+
+              {error && (
+                <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Username or Email
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter username or email"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-2 py-3 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? 'Authenticating...' : 'Sign In'}
+                </button>
+              </form>
+
+              {/* Dev Quick-Fill helper (only visible in local development environment) */}
+              {import.meta.env.DEV && (
+                <div className="mt-8 pt-6 border-t border-slate-700">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3 text-center">
+                    Dev Quick-Fill
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleQuickFill('owner', 'Password@123')}
+                      className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-700 hover:border-orange-500/50 text-left transition-all"
+                    >
+                      <p className="text-xs font-bold text-orange-400">Store Owner</p>
+                      <p className="text-[10px] text-slate-400">owner / Password@123</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleQuickFill('employee', 'Password@123')}
+                      className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-700 hover:border-blue-500/50 text-left transition-all"
+                    >
+                      <p className="text-xs font-bold text-blue-400">Sales Associate</p>
+                      <p className="text-[10px] text-slate-400">employee / Password@123</p>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Username or Email
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. owner or employee"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-2 py-3 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isLoading ? 'Authenticating...' : 'Sign In'}
-            </button>
-          </form>
-
-          {/* Quick Demo Credentials */}
-          <div className="mt-8 pt-6 border-t border-slate-700">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3 text-center">
-              Quick 1-Click Demo Logins
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('owner', 'Password@123')}
-                className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-700 hover:border-orange-500/50 text-left transition-all"
-              >
-                <p className="text-xs font-bold text-orange-400">Store Owner</p>
-                <p className="text-[10px] text-slate-400">owner / Password@123</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('employee', 'Password@123')}
-                className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-700 hover:border-blue-500/50 text-left transition-all"
-              >
-                <p className="text-xs font-bold text-blue-400">Sales Associate</p>
-                <p className="text-[10px] text-slate-400">employee / Password@123</p>
-              </button>
-            </div>
-          </div>
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-6">

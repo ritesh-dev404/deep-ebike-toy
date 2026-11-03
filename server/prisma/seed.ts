@@ -86,12 +86,17 @@ async function main() {
 
   console.log('✓ Permissions seeded and assigned');
 
-  // 3. Default Users
-  const passwordHash = await bcrypt.hash('Password@123', 10);
+  // 3. Initial Users (never overwrite existing passwords)
+  const initialPassword = process.env.INITIAL_OWNER_PASSWORD || process.env.OWNER_PASSWORD || 'Password@123';
+  if (process.env.NODE_ENV === 'production' && (!process.env.INITIAL_OWNER_PASSWORD && !process.env.OWNER_PASSWORD)) {
+    console.warn('⚠️ SECURITY WARNING: Please supply INITIAL_OWNER_PASSWORD environment variable for production seeding.');
+  }
+
+  const passwordHash = await bcrypt.hash(initialPassword, 10);
 
   const ownerUser = await prisma.user.upsert({
     where: { username: 'owner' },
-    update: { passwordHash },
+    update: {}, // Preserve existing credentials
     create: {
       username: 'owner',
       email: 'owner@deepebikeandtoy.com',
@@ -105,7 +110,7 @@ async function main() {
 
   const employeeUser = await prisma.user.upsert({
     where: { username: 'employee' },
-    update: { passwordHash },
+    update: {}, // Preserve existing credentials
     create: {
       username: 'employee',
       email: 'rahul@deepebikeandtoy.com',

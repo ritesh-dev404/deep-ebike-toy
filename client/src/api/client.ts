@@ -2,8 +2,20 @@ import axios from 'axios';
 
 // Configurable API base URL:
 // - Defaults to '/api' for local development (Vite proxy) and offline desktop Electron
-// - Configurable via VITE_API_URL on Vercel (e.g. 'https://deep-backend.onrender.com/api')
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+// - Configurable via VITE_API_URL on Vercel (e.g. 'https://deep-ebike-toy.onrender.com/api')
+function normalizeApiBaseUrl(rawUrl?: string): string {
+  if (!rawUrl || rawUrl.trim() === '' || rawUrl.trim() === '/api') {
+    return '/api';
+  }
+  let url = rawUrl.trim().replace(/\/+$/, '');
+  // If user passed origin like 'https://deep-ebike-toy.onrender.com' without '/api', append it
+  if ((url.startsWith('http://') || url.startsWith('https://')) && !url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+}
+
+export const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,

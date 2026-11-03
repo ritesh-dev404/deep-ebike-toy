@@ -30,7 +30,7 @@ export const UsersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'staff' | 'permissions'>('staff');
   const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'PENDING' | 'INACTIVE'>('ALL');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'OWNER' | 'EMPLOYEE'>('ALL');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -200,7 +200,8 @@ export const UsersPage: React.FC = () => {
   };
 
   const handleToggleStatus = async (u: any) => {
-    const actionWord = u.isActive ? 'deactivate' : 'activate';
+    const isPending = !u.isActive && !u.lastLogin;
+    const actionWord = isPending ? 'approve & activate' : u.isActive ? 'deactivate' : 'activate';
     if (!window.confirm(`Are you sure you want to ${actionWord} the account for ${u.fullName}?`)) {
       return;
     }
@@ -250,7 +251,8 @@ export const UsersPage: React.FC = () => {
     const matchesStatus =
       statusFilter === 'ALL' ||
       (statusFilter === 'ACTIVE' && u.isActive) ||
-      (statusFilter === 'INACTIVE' && !u.isActive);
+      (statusFilter === 'PENDING' && !u.isActive && !u.lastLogin) ||
+      (statusFilter === 'INACTIVE' && !u.isActive && Boolean(u.lastLogin));
 
     const matchesRole = roleFilter === 'ALL' || u.role.name === roleFilter;
 
@@ -260,6 +262,7 @@ export const UsersPage: React.FC = () => {
   // Aggregate Stats
   const totalUsers = users.length;
   const activeCount = users.filter((u) => u.isActive).length;
+  const pendingCount = users.filter((u) => !u.isActive && !u.lastLogin).length;
   const employeeCount = users.filter((u) => u.role.name === 'EMPLOYEE').length;
   const totalStaffSales = users.reduce((acc, u) => acc + (u.totalSalesAmount || 0), 0);
 
@@ -393,6 +396,7 @@ export const UsersPage: React.FC = () => {
               >
                 <option value="ALL">All Status</option>
                 <option value="ACTIVE">Active Accounts</option>
+                <option value="PENDING">Pending Approval ({pendingCount})</option>
                 <option value="INACTIVE">Deactivated</option>
               </select>
             </div>
@@ -478,13 +482,23 @@ export const UsersPage: React.FC = () => {
 
                 {/* Actions Bar */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                  {/* Status Toggle */}
+                  {/* Status Toggle / Approve */}
                   <button
                     onClick={() => handleToggleStatus(u)}
-                    title={u.isActive ? 'Deactivate account' : 'Activate account'}
+                    title={
+                      !u.isActive && !u.lastLogin
+                        ? 'Approve and activate this employee registration'
+                        : u.isActive
+                        ? 'Deactivate account'
+                        : 'Reactivate account'
+                    }
                     className="flex items-center gap-1.5 text-xs font-semibold"
                   >
-                    {u.isActive ? (
+                    {!u.isActive && !u.lastLogin ? (
+                      <span className="text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/30 flex items-center gap-1 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Approve Registration
+                      </span>
+                    ) : u.isActive ? (
                       <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 hover:underline">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Active
                       </span>

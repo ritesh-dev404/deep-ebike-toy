@@ -147,11 +147,11 @@ export const initialSetup = async (req: Request, res: Response) => {
 };
 
 /**
- * Login handler supporting both Owner and Employee accounts
+ * Login handler supporting both Owner and Employee accounts with role verification
  */
 export const login = async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, expectedRole } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({
@@ -186,18 +186,42 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'This account has been deactivated. Please contact store owner.',
-      });
-    }
-
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password',
+      });
+    }
+
+    // Role verification if specified by client login tab
+    if (expectedRole === 'OWNER' && user.role.name !== 'OWNER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. This login is for Store Owners only. Please switch to the Employee Login tab.',
+      });
+    }
+
+    if (expectedRole === 'EMPLOYEE' && user.role.name !== 'EMPLOYEE') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. This login is for Employees only. Please switch to the Owner Login tab.',
+      });
+    }
+
+    // Check account status & owner approval
+    if (!user.isActive) {
+      if (!user.lastLogin) {
+        return res.status(403).json({
+          success: false,
+          message: 'Your registration is pending approval by the Store Owner. Please contact the owner to activate your account.',
+          status: 'PENDING_APPROVAL',
+        });
+      }
+      return res.status(403).json({
+        success: false,
+        message: 'This account has been deactivated. Please contact store owner.',
+        status: 'DEACTIVATED',
       });
     }
 
@@ -252,6 +276,146 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'An error occurred during login',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Self-registration for new Employees
+ * Creates an account in PENDING_APPROVAL status (isActive: false).
+ * Store Owner must approve in Employee Management before the employee can log in.
+ */
+export const registerEmployee = async (req: Request, res: Response) => {
+  try {
+    const { fullName, username, phone, password, confirmPassword } = req.body;
+
+    if (!fullName || !username || !phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name, unique username, mobile number, and password are required.',
+      });
+    }
+
+    const trimmedFullName = fullName.trim();
+    const trimmedUsername = username.trim().toLowerCase();
+    const trimmedPhone = phone.trim().replace(/[\s\-()]/g, '');
+
+    if (trimmedFullName.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name must be at least 2 characters long.',
+      });
+    }
+
+    if (trimmedUsername.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username must be at least 3 characters long.',
+      });
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username can only contain letters, numbers, and underscores.',
+      });
+    }
+
+    if (trimmedPhone.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid 10-digit mobile number.',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long.',
+      });
+    }
+
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match. Please verify your password.',
+      });
+    }
+
+    // Check if username or phone already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: trimmedUsername },
+          { phone: trimmedPhone },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      if (existingUser.username.toLowerCase() === trimmedUsername) {
+        return res.status(400).json({
+          success: false,
+          message: 'This username is already taken. Please choose another username.',
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'This mobile number is already registered.',
+      });
+    }
+
+    // Ensure EMPLOYEE role exists
+    const { employeeRole } = await ensureSystemRolesAndPermissions();
+
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
+
+    const newEmployee = await prisma.user.create({
+      data: {
+        fullName: trimmedFullName,
+        username: trimmedUsername,
+        phone: trimmedPhone,
+        passwordHash,
+        roleId: employeeRole.id,
+        isActive: false, // PENDING APPROVAL: requires owner approval
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    await logAudit({
+      userId: newEmployee.id,
+      action: 'REGISTER_EMPLOYEE_PENDING',
+      entityName: 'User',
+      entityId: newEmployee.id,
+      newValues: {
+        username: newEmployee.username,
+        fullName: newEmployee.fullName,
+        phone: newEmployee.phone,
+        status: 'PENDING_APPROVAL',
+      },
+      ipAddress: req.ip,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Employee registration submitted successfully! Your account is pending Owner approval before you can log in.',
+      data: {
+        id: newEmployee.id,
+        username: newEmployee.username,
+        fullName: newEmployee.fullName,
+        phone: newEmployee.phone,
+        role: newEmployee.role.name,
+        status: 'PENDING_APPROVAL',
+      },
+    });
+  } catch (error: any) {
+    console.error('registerEmployee error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process employee registration.',
       error: error.message,
     });
   }

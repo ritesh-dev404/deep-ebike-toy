@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import path from 'path';
 import fs from 'fs';
 import routes from './routes';
+import authRoutes from './routes/auth.routes';
 import { ENV } from './config/env';
 import { errorHandler } from './middlewares/error.middleware';
 import { apiLimiter } from './middlewares/rateLimiter.middleware';
@@ -90,6 +91,9 @@ app.get('/api/health', (req, res) => {
 
 // Main API routes
 app.use('/api', routes);
+
+// Auth aliases to prevent 404s when requests are made without /api prefix
+app.use('/auth', authRoutes);
 
 // Serve Static Frontend if built
 const clientDistPath = path.resolve(__dirname, '../../client/dist');

@@ -10,12 +10,21 @@ interface SetupPayload {
   phone?: string;
 }
 
+export interface RegisterEmployeePayload {
+  fullName: string;
+  username: string;
+  phone: string;
+  password: string;
+  confirmPassword?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
   setupRequired: boolean;
-  login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (username: string, password: string, expectedRole?: 'OWNER' | 'EMPLOYEE') => Promise<{ success: boolean; message?: string; status?: string }>;
+  registerEmployee: (data: RegisterEmployeePayload) => Promise<{ success: boolean; message?: string }>;
   initialSetup: (data: SetupPayload) => Promise<{ success: boolean; message?: string }>;
   checkSetupStatus: () => Promise<boolean>;
   logout: () => void;
@@ -67,9 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, expectedRole?: 'OWNER' | 'EMPLOYEE') => {
     try {
-      const response = await api.post('/auth/login', { username, password });
+      const response = await api.post('/auth/login', { username, password, expectedRole });
       if (response.data.success) {
         const { token: newToken, user: newUser } = response.data.data;
         setToken(newToken);
@@ -97,13 +106,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cached = localStorage.getItem(`deep_offline_cache_${username}`);
       if (cached && !navigator.onLine) {
         const data = JSON.parse(cached);
+        if (expectedRole && data.user?.role !== expectedRole) {
+          return { success: false, message: `Access denied. Account is not authorized as ${expectedRole}.` };
+        }
         setToken(data.token);
         setUser(data.user);
         setSetupRequired(false);
         return { success: true, message: 'Logged in using Offline Cached Session' };
       }
 
-      const msg = error.response?.data?.message || error.message || 'Failed to connect to server';
+      const msg = error.response?.data?.message || (error.response?.status === 404 ? 'Login endpoint not found (404). Please ensure backend is reachable.' : 'Invalid credentials or server unavailable.');
+      return { success: false, message: msg, status: error.response?.data?.status };
+    }
+  };
+
+  const registerEmployee = async (data: RegisterEmployeePayload) => {
+    try {
+      const res = await api.post('/auth/register-employee', data);
+      if (res.data.success) {
+        return { success: true, message: res.data.message };
+      }
+      return { success: false, message: res.data.message || 'Registration failed' };
+    } catch (error: any) {
+      const msg = error.response?.data?.message || error.message || 'Registration failed';
       return { success: false, message: msg };
     }
   };
@@ -155,6 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         setupRequired,
         login,
+        registerEmployee,
         initialSetup,
         checkSetupStatus,
         logout,

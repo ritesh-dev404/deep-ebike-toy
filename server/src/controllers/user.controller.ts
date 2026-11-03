@@ -39,8 +39,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
         });
 
         const { passwordHash, ...safeUser } = u;
+        const status = !u.isActive && !u.lastLogin ? 'PENDING' : u.isActive ? 'ACTIVE' : 'DEACTIVATED';
         return {
           ...safeUser,
+          status,
           totalSalesAmount: Math.round((salesRevenue._sum.grandTotal || 0) * 100) / 100,
           permissions: u.role.permissions.map((p) => p.permission.name),
         };
@@ -84,10 +86,12 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 
     const { passwordHash, ...safeUser } = user;
+    const status = !user.isActive && !user.lastLogin ? 'PENDING' : user.isActive ? 'ACTIVE' : 'DEACTIVATED';
     return res.json({
       success: true,
       data: {
         ...safeUser,
+        status,
         permissions: user.role.permissions.map((p) => p.permission.name),
       },
     });

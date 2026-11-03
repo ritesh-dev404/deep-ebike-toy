@@ -64,11 +64,27 @@ app.use('/api', apiLimiter);
 
 // System health check
 app.get('/api/health', (req, res) => {
+  const isPostgresActive = Boolean(
+    process.env.DATABASE_TYPE === 'postgresql' ||
+    process.env.DATABASE_TYPE === 'postgres' ||
+    (process.env.NEON_DATABASE_URL && (process.env.NEON_DATABASE_URL.startsWith('postgresql://') || process.env.NEON_DATABASE_URL.startsWith('postgres://'))) ||
+    (process.env.DATABASE_URL && (process.env.DATABASE_URL.startsWith('postgresql://') || process.env.DATABASE_URL.startsWith('postgres://')))
+  );
+
+  const neonScheme = process.env.NEON_DATABASE_URL ? (process.env.NEON_DATABASE_URL.split(':')[0] || 'unknown') : 'not_set';
+  const dbScheme = process.env.DATABASE_URL ? (process.env.DATABASE_URL.split(':')[0] || 'unknown') : 'not_set';
+
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
     service: 'DEEP E-BIKE & TOY POS API',
     version: '1.0.0-PROD',
+    database: {
+      type: isPostgresActive ? 'Neon PostgreSQL (Cloud)' : 'SQLite (Offline)',
+      neonConfigured: neonScheme.startsWith('postgres'),
+      databaseUrlConfigured: dbScheme.startsWith('postgres'),
+      neonScheme,
+    },
   });
 });
 

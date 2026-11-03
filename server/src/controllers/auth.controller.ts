@@ -21,7 +21,12 @@ export const getSetupStatus = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('getSetupStatus error:', error);
-    return res.status(500).json({ success: false, message: error.message });
+    const msg = error?.message || 'Unknown database error';
+    let userHint = msg;
+    if (msg.includes('the URL must start with the protocol') || msg.includes('NEON_DATABASE_URL')) {
+      userHint = 'Database connection URL is missing or invalid. Please verify NEON_DATABASE_URL is set in Render Environment Variables with format postgresql://...';
+    }
+    return res.status(500).json({ success: false, message: userHint, error: msg });
   }
 };
 

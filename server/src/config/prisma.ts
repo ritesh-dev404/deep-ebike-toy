@@ -15,13 +15,39 @@ import { ENV } from './env';
  *    Activated when DATABASE_TYPE is 'sqlite' or for local Electron POS.
  *    Uses default SQLite Prisma Client with robust path resolution.
  */
+function cleanUrlString(val?: string): string {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '').trim();
+}
+
+const rawNeon = cleanUrlString(ENV.NEON_DATABASE_URL || process.env.NEON_DATABASE_URL);
+const rawDb = cleanUrlString(ENV.DATABASE_URL || process.env.DATABASE_URL);
+
+const isPostgresUrl = (url: string) => url.startsWith('postgresql://') || url.startsWith('postgres://');
+
+const effectivePostgresUrl = isPostgresUrl(rawNeon)
+  ? rawNeon
+  : isPostgresUrl(rawDb)
+    ? rawDb
+    : '';
+
 const isPostgres = Boolean(
   process.env.DATABASE_TYPE === 'postgresql' ||
   process.env.DATABASE_TYPE === 'postgres' ||
-  (process.env.DATABASE_TYPE !== 'sqlite' &&
-   ((ENV.NEON_DATABASE_URL && !ENV.NEON_DATABASE_URL.includes('placeholder')) ||
-    (ENV.DATABASE_URL && (ENV.DATABASE_URL.startsWith('postgresql://') || ENV.DATABASE_URL.startsWith('postgres://')))))
+  (process.env.DATABASE_TYPE !== 'sqlite' && Boolean(effectivePostgresUrl))
 );
+
+if (isPostgres) {
+  if (effectivePostgresUrl) {
+    process.env.NEON_DATABASE_URL = effectivePostgresUrl;
+    process.env.DATABASE_URL = effectivePostgresUrl;
+  }
+} else {
+  // Desktop Offline SQLite Mode
+  if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
+    process.env.DATABASE_URL = 'file:./deep_pos.db';
+  }
+}
 
 function resolveSqliteUrl(rawUrl: string): string {
   if (!rawUrl.startsWith('file:')) return rawUrl;
@@ -46,10 +72,8 @@ function resolveSqliteUrl(rawUrl: string): string {
 }
 
 const resolvedUrl = isPostgres
-  ? (ENV.NEON_DATABASE_URL && !ENV.NEON_DATABASE_URL.includes('placeholder')
-      ? ENV.NEON_DATABASE_URL
-      : ENV.DATABASE_URL)
-  : resolveSqliteUrl(ENV.DATABASE_URL || 'file:./deep_pos.db');
+  ? (effectivePostgresUrl || 'postgresql://unconfigured:missing@localhost:5432/neondb')
+  : resolveSqliteUrl(rawDb || 'file:./deep_pos.db');
 
 export const isUsingPostgres = isPostgres;
 
